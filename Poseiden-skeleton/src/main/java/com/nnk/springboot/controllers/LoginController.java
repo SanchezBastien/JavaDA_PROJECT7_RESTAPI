@@ -21,6 +21,8 @@ public class LoginController {
         return mav;
     }
 
+
+
     @GetMapping("secure/article-details")
     public ModelAndView getAllUserArticles() {
         ModelAndView mav = new ModelAndView();
