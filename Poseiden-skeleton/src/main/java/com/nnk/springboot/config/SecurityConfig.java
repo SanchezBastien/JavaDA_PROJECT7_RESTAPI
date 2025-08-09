@@ -1,59 +1,67 @@
 package com.nnk.springboot.config;
 
-
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import com.nnk.springboot.services.MyUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-/**
- * Configuration de la sécurité pour l'application PayMyBuddy.
- * Cette classe configure les règles d'authentification et d'autorisation pour l'accès aux différentes
- * ressources de l'application. Elle définit les pages accessibles sans authentification, la gestion
- * du login, du logout et le chiffrement des mots de passe utilisateurs.
- */
-
 @Configuration
+@EnableWebSecurity
 @EnableMethodSecurity
-@ConditionalOnWebApplication
 public class SecurityConfig {
 
-    /**
-     * Configure la chaîne de filtres de sécurité pour l'application.
-     * - Autorise l'accès libre aux pages de connexion, d'inscription et aux ressources statiques (CSS, JS).
-     * - Rend toutes les autres URLs accessibles uniquement aux utilisateurs authentifiés.
-     * - Définit la page de login personnalisée et la redirection après connexion réussie.
-     * - Configure la déconnexion et la redirection après déconnexion.
-     */
+    private final MyUserDetailsService userDetailsService;
+
+    public SecurityConfig(MyUserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/app/login", "/home/", "/signup", "/css/**", "/js/**").permitAll()
+                        .requestMatchers(
+                                "/", "/app/login", "/error", "/app/error",
+                                "/css/**", "/js/**", "/images/**", "/webjars/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .defaultSuccessUrl("/", true)
+                        .loginPage("/app/login")                   // GET : affiche le formulaire
+                        .loginProcessingUrl("/app/login")          // POST intercepté par Spring Security
+                        .defaultSuccessUrl("/bidList/list", true)  // redirection après succès
+                        .failureUrl("/app/login?error")            // en cas d’échec
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/app/login?logout")
+                        .logoutUrl("/app/logout")
+                        .logoutSuccessUrl("/")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
-                );
+                )
+                .exceptionHandling(ex -> ex.accessDeniedPage("/app/error"));
 
+        http.authenticationProvider(daoAuthenticationProvider());
         return http.build();
     }
 
-    /**
-     * Fournit un encodeur de mot de passe utilisant l'algorithme BCrypt.
-     * Cet encodeur est utilisé pour hasher les mots de passe utilisateurs avant stockage
-     * en base de données et pour la vérification lors de l'authentification
-     * @return Un PasswordEncoder basé sur BCrypt.
-     */
+    @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

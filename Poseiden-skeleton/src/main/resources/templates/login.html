@@ -1,20 +1,35 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Connexion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body>
-<h2>Connexion</h2>
-<form method="post" action="/app/login">
-  <label>Nom d'utilisateur:</label>
-  <input type="text" name="username" required/><br/>
-  <label>Mot de passe:</label>
-  <input type="password" name="password" required/><br/>
+<h1>Connexion</h1>
+
+<div th:if="${param.error}" style="color:#b00020">Identifiants invalides.</div>
+<div th:if="${param.logout}" style="color:#006400">Vous êtes déconnecté.</div>
+
+<form method="post" th:action="@{/app/login}">
+  <!-- Token CSRF -->
+  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+  <div>
+    <label for="username">Utilisateur</label>
+    <input id="username" name="username" type="text" autocomplete="username" required />
+  </div>
+
+  <div>
+    <label for="password">Mot de passe</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required />
+  </div>
+
   <button type="submit">Se connecter</button>
 </form>
-<div th:if="${param.error}">
-  <p style="color:red;">Identifiants invalides !</p>
-</div>
+
+<p>
+  <a href="/">Retour accueil</a>
+</p>
 </body>
 </html>
