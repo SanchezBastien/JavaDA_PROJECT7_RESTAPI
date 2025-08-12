@@ -32,6 +32,7 @@
     <option name="database" value="demo" />
     <option name="driverClass" value="com.mysql.cj.jdbc.Driver" />
     <option name="driverPath" value="C:\Users\sanch\Documents\mysqljdbcdriver\mysql-connector-j-9.3.0.jar" />
+    <option name="language" value="fr-FR" />
     <option name="port" value="3307" />
     <option name="url" value="jdbc:mysql://localhost:3307/demo?useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8" />
   </component>

@@ -60,4 +60,9 @@ public class UserController {
         userService.delete(id);
         return "redirect:/user/list";
     }
+
+    @GetMapping("/user/add")
+    public String addUser(User user) {
+        return "user/add";
+    }
 }
